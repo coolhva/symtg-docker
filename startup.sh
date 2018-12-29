@@ -21,7 +21,7 @@ TG_URLS=$(cat /app/urllist.txt | wc -l)
 cd /app
 git clone https://github.com/coolhva/symtg.git /app/symtg/
 echo '*/'"$TG_INTERVAL"' * * * * /app/wss.sh' > /etc/crontabs/root
-ehco '0 1 * * * /app/update.sh' >> /etc/crontabs/root
+echo '0 1 * * * /app/update.sh' >> /etc/crontabs/root
 echo ''
 echo 'Settings        : '
 echo 'Proxy           : '"$TG_PROXY"
