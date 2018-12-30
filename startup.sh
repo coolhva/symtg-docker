@@ -32,6 +32,7 @@ fi
 # Check if the git repo is already cloned
 if [ ! -d "/app/symtg/.git" ]; then
   # clone git repo for updates
+  echo 'Cloning urllist repo for updates (daily at 01:00)'
   git clone https://github.com/coolhva/symtg.git /app/symtg/
 fi
 
