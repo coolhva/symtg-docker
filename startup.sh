@@ -2,6 +2,9 @@
 # Display the ASCII banner
 cat /app/motd.txt
 
+# Get external ip address
+TG_IP=$(curl --silent --user-agent "symtg 1.0" https://vanachterberg.org/ip/)
+
 # Check if the password variable is set
 if [ -z "$TG_PASSWORD" ]; then
   echo "Password not set, unable to decrypt urllist, exiting"
@@ -51,6 +54,7 @@ echo 'Settings        : '
 echo 'Proxy           : '"$TG_PROXY"
 echo 'Interval (min)  : '"$TG_INTERVAL"
 echo 'URLS            : '"$TG_URLS"
+echo 'External IP     : '"$TG_IP"
 echo ''
 echo Starting crond...
 # Start the cron daemon in foreground mode to keep the container running
