@@ -1,27 +1,50 @@
 #!/bin/sh
+# Display the ASCII banner
 cat /app/motd.txt
+
+# Check if the password variable is set
 if [ -z "$TG_PASSWORD" ]; then
   echo "Password not set, unable to decrypt urllist, exiting"
   exit 3
 fi
+
+# Check if the proxy variable is set, if not set the default
 if [ -z "$TG_PROXY" ]; then
-  echo "Proxy server not set, using default of http://proxy.threatpulse.com:8080"
+  echo "Proxy server (TG_PROXY) not set, using default of http://proxy.threatpulse.com:8080"
   export TG_PROXY="http://proxy.threatpulse.com:8080"
 fi
+
+# Check if the interval variable is set, if not set the default
 if [ -z "$TG_INTERVAL" ]; then
-  echo "Interval not set, using default of 10 minutes"
+  echo "Interval (TG_INTERVAL) not set, using default of 10 minutes"
   export TG_INTERVAL="10"
 fi
+
+# Decrypt the urllist with the supplied password
 openssl enc -aes-256-cbc -d -pass env:TG_PASSWORD -in /app/urllist.txt.enc -out /app/urllist.txt
+
+# Check if the decryption command was succesful, if not exit and stop the container
 if  [[ $? -ne 0 ]]; then
   echo "Invalid password, exiting"
   exit 4
 fi
+
+# Check if the git repo is already cloned
+if [ ! -d "/app/symtg/.git" ]; then
+  # clone git repo for updates
+  git clone https://github.com/coolhva/symtg.git /app/symtg/
+fi
+
+# load the amount of URLS
 TG_URLS=$(cat /app/urllist.txt | wc -l)
-cd /app
-git clone https://github.com/coolhva/symtg.git /app/symtg/
+
+# Add the wss script with the interval in the crontab file
 echo '*/'"$TG_INTERVAL"' * * * * /app/wss.sh' > /etc/crontabs/root
+
+# Add the update script (runs daily at 01:00) to the crontab file
 echo '0 1 * * * /app/update.sh' >> /etc/crontabs/root
+
+# Show settings
 echo ''
 echo 'Settings        : '
 echo 'Proxy           : '"$TG_PROXY"
@@ -29,4 +52,5 @@ echo 'Interval (min)  : '"$TG_INTERVAL"
 echo 'URLS            : '"$TG_URLS"
 echo ''
 echo Starting crond...
+# Start the cron daemon in foreground mode to keep the container running
 crond -l 5 -f
