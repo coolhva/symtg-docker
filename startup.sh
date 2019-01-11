@@ -23,6 +23,12 @@ if [ -z "$TG_INTERVAL" ]; then
   export TG_INTERVAL="10"
 fi
 
+# Check if the interval variable is set, if not set the default
+if [ -z "$TG_WEEKEND" ]; then
+  echo "Weekend percentage (TG_WEEKEND) not set, using 100% in the weekend"
+  export TG_WEEKEND="100"
+fi
+
 # Decrypt the urllist with the supplied password
 openssl enc -aes-256-cbc -d -pass env:TG_PASSWORD -in /app/urllist.txt.enc -out /app/urllist.txt
 
@@ -36,8 +42,11 @@ fi
 if [ ! -d "/app/symtg/.git" ]; then
   # clone git repo for updates
   echo 'Cloning urllist repo for updates (daily at 01:00)'
-  git clone https://github.com/coolhva/symtg.git /app/symtg/
+  git clone https://github.com/coolhva/symtg /app/symtg/
 fi
+
+# Updating the urllist
+/app/update.sh
 
 # load the amount of URLS
 TG_URLS=$(cat /app/urllist.txt | wc -l)
@@ -51,8 +60,10 @@ echo '0 1 * * * /app/update.sh' >> /etc/crontabs/root
 # Show settings
 echo ''
 echo 'Settings        : '
+echo 'Version         : 1.1'
 echo 'Proxy           : '"$TG_PROXY"
 echo 'Interval (min)  : '"$TG_INTERVAL"
+echo 'Weekend         : '"$TG_WEEKEND"'%'
 echo 'URLS            : '"$TG_URLS"
 echo 'External IP     : '"$TG_IP"
 echo ''
